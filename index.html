@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Caja de regalo</title>
+<style>
+:root{
+  --spawn-interval: 220ms; 
+  --heart-interval: 500ms; 
+}
+*{ box-sizing: border-box; }
+html, body{ height:100%; margin:0; }
+body{
+  background:#000; color:#fff; overflow:hidden;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+#falling-container{ position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+.falling-word{
+  position:fixed; top:-60px; font-weight:700; opacity:.85;
+  text-shadow:0 0 6px rgba(255,255,255,.35);
+  will-change: transform, opacity;
+  white-space:nowrap; user-select:none;
+}
+@keyframes fall{
+  0%{ transform: translate3d(var(--x,0), -10vh, 0) rotate(var(--rstart, 0deg)); opacity:0 }
+  10%{ opacity:1 }
+  100%{ transform: translate3d(var(--x,0), 110vh, 0) rotate(var(--rend, 0deg)); opacity:.2 }
+}
+
+.heart{
+  position:fixed; top:-40px; font-size:20px; color:#ff2d55; opacity:.9;
+  will-change: transform, opacity;
+}
+@keyframes fallHeart{
+  0%{ transform: translate3d(var(--x,0), -10vh, 0) scale(1); opacity:0 }
+  10%{ opacity:1 }
+  100%{ transform: translate3d(var(--x,0), 110vh, 0) scale(1.3); opacity:0 }
+}
+
+.center-wrap{ position:fixed; inset:0; display:grid; place-items:center; pointer-events:none; }
+.center{
+  position:relative; pointer-events:auto; display:grid; place-items:center;
+  width:min(70vmin, 520px); aspect-ratio:1/1; border-radius:24px; overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+.center img{ width:100%; height:100%; object-fit:cover; display:block; cursor:pointer; }
+.hint{
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+  font-size:12px; opacity:.8; backdrop-filter:blur(4px); background:rgba(0,0,0,.5);
+  padding:6px 10px; border-radius:999px;
+}
+.modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:30; }
+.modal.open{ display:flex; }
+.modal::before{ content:""; position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(6px); }
+.modal .box{
+  position:relative; width:min(92vw, 640px); background:rgba(20,20,20,.9); color:#fff;
+  border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:18px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:1; text-align:center;
+}
+.modal .box p{ font-size:20px; line-height:1.4; }
+
+footer.credit{ position:fixed; left:12px; bottom:12px; font-size:12px; opacity:.6 }
+</style>
+</head>
+<body>
+<div id="falling-container" aria-hidden="true"></div>
+
+<div class="center-wrap">
+<div class="center">
+<img id="centerImg" alt="HAZ CLICK EN LA CAJITA DE REGALO" src="caja de regalo.png" width='1000' height='1000'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%23000'/><stop offset='1' stop-color='%23161616'/></linearGradient></defs><rect width='1000' height='1000' fill='url(%23g)'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='48' font-family='Segoe UI, Arial'>Tu foto aquí</text></svg>" />
+<div class="hint">HAZ CLICK EN LA CAJITA DE REGALO</div>
+ </div>
+</div>
+
+<footer class="credit">Hecho con amor ❤️</footer>
+
+<script>
+const words = [
+"amo tu sonrisa","te amo","eres mi vida","me haces feliz","mi amor","mi princesa","mi reina","mi corazón","eres mi todo","te extraño",
+"pienso en ti","eres mi felicidad","mi cielo","mi niña hermosa","te deseo","mi sol","mi luna","mi estrella","te necesito","mi preciosa",
+"mi bombón","mi tesoro","mi alegría","eres única","mi amor eterno","mi morenita hermosa","mi bebé linda","mi princesa hermosa","me encantas","me enamoras"
+];
+
+const container = document.getElementById('falling-container');
+const SPAWN_MS = 220; 
+const MIN_DURATION = 7; 
+const MAX_DURATION = 14;
+const MIN_SIZE = 14; 
+const MAX_SIZE = 34;
+
+function rand(min, max){ return Math.random() * (max - min) + min; }
+function choice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function spawnWord(){
+  const span = document.createElement('span');
+  span.className = 'falling-word';
+  span.textContent = choice(words);
+  span.style.left = rand(0, 100) + 'vw';
+  span.style.fontSize = rand(MIN_SIZE, MAX_SIZE) + 'px';
+  span.style.opacity = rand(0.5, 0.95);
+  const dur = rand(MIN_DURATION, MAX_DURATION);
+  span.style.animation = `fall ${dur}s linear 0s 1 forwards`;
+  span.style.setProperty('--x', (rand(-2,2))+'vw');
+  span.style.setProperty('--rstart', rand(-10,10)+'deg');
+  span.style.setProperty('--rend', rand(-30,30)+'deg');
+  container.appendChild(span);
+  span.addEventListener('animationend', () => span.remove());
+}
+setInterval(spawnWord, SPAWN_MS);
+
+function spawnHeart(){
+  const heart = document.createElement('div');
+  heart.className = 'heart';
+  heart.textContent = choice(["❤","💖","💘","💕","💓","💞"]);
+  heart.style.left = rand(0,100)+'vw';
+  heart.style.fontSize = rand(16,32)+'px';
+  const dur = rand(6,12);
+  heart.style.animation = `fallHeart ${dur}s linear`; 
+  heart.style.setProperty('--x', (rand(-2,2))+'vw');
+  container.appendChild(heart);
+  heart.addEventListener('animationend', ()=> heart.remove());
+}
+setInterval(spawnHeart, 500);
+
+const centerImg = document.getElementById('centerImg');
+const modal = document.getElementById('modal');
+
+centerImg.addEventListener('click', () => {
+  window.location.href = "https://juanisaac123.github.io/Feliz-2-meses-3";
+});
+modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+
+</script>
+</body>
+</html>
